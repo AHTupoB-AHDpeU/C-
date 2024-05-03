@@ -15,12 +15,10 @@ namespace WindowsFormsApp2
     public partial class Form2 : Form
     {
         public bool isDrawing, isErasing = false; // Флаги для определения режимов рисования и удаления
-        private Point startPoint; // Точка начала рисования прямоугольника
+        private Point startPoint, customPoint;
         private int firstPointMouseX, firstPointMouseY, lastPointMouseX, lastPointMouseY; // Координаты начала и конца выделения для удаления
         public string FileName { get; set; }
         public bool isChangesSaved = true;
-
-        private List<Point> customLinePoints = new List<Point>();
 
         public Coordinate CurrentMouseCoordinates { get; set; }
         public event EventHandler<MouseEventArgs> MouseCoordinatesChanged; // Передача координат и размера в статусБар
@@ -38,6 +36,9 @@ namespace WindowsFormsApp2
         private List<Figure> figures1 = new List<Figure>();
         private List<Figure> figures2 = new List<Figure>();
         private List<Figure> figures3 = new List<Figure>();
+
+        public int customX = 50;
+        public int customY = 0;
 
         public List<Figure> Figures
         {
@@ -138,16 +139,16 @@ namespace WindowsFormsApp2
             }
         }
 
-        public void DrawAll(Graphics g, Pen pen, Point[] points)
+        public void DrawAll(Graphics g)
         {
-            foreach (var figure in figures)
-                figure.DrawLine(g);
-            foreach (var figure in figures1)
-                figure.DrawCustomLine(g, pen, points);
             foreach (var figure in figures2)
                 figure.Draw(g);
             foreach (var figure in figures3)
                 figure.DrawEllipse(g);
+            foreach (var figure in figures)
+                figure.DrawLine(g);
+            foreach (var figure in figures1)
+                figure.DrawCustomLine(g);
         }
 
         public void SetColor(Color color)
@@ -204,7 +205,7 @@ namespace WindowsFormsApp2
         {
             if (isDrawing && e.Button == MouseButtons.Left)
             {
-                customLinePoints.Add(e.Location);
+                customPoint = new Point((startPoint.X + e.Location.X) / 2 + customX, (startPoint.Y + e.Location.Y) / 2 + customY);
                 Invalidate();
             }
             else if (isErasing)
@@ -224,22 +225,22 @@ namespace WindowsFormsApp2
 
                 if (lew == aboba.lew1)
                 {
-                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW);
+                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW, e.Location);
                     AddFigure(newRectangle); // Добавление в массив
                 }
                 else if (lew == aboba.lew2)
                 {
-                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW);
+                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW, customPoint);
                     AddFigure1(newRectangle); // Добавление в массив
                 }
                 else if (lew == aboba.lew3)
                 {
-                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW);
+                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW, e.Location);
                     AddFigure2(newRectangle); // Добавление в массив
                 }
                 else if (lew == aboba.lew4)
                 {
-                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW);
+                    RectangleFigure newRectangle = new RectangleFigure(startPoint, e.Location, colorW, color_backW, thicknessW, e.Location);
                     AddFigure3(newRectangle); // Добавление в массив
                 }
 
@@ -252,7 +253,6 @@ namespace WindowsFormsApp2
                 Hide(firstPointMouseX, firstPointMouseY, lastPointMouseX, lastPointMouseY); // Удаление
                 isChangesSaved = false;
                 Invalidate();
-                customLinePoints.Clear();
             }
         }
 
@@ -274,37 +274,37 @@ namespace WindowsFormsApp2
         }
         public unsafe void Form2_Paint(object sender, PaintEventArgs e)
         {
-            Pen pen = new Pen(Color.White, 1);
-            Point[] points = customLinePoints.ToArray();
-
             if (lew == aboba.lew1)
             {
-                DrawAll(e.Graphics, pen, points);
+                DrawAll(e.Graphics);
                 if (isDrawing)
                 {
-                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW);
+                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW, PointToClient(MousePosition));
                     tempRectangle.DrawDashLine(e.Graphics);
                 }
             }
             if (lew == aboba.lew2)
             {
-                DrawAll(e.Graphics, pen, points);
+                DrawAll(e.Graphics);
+                RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW, customPoint);
+                tempRectangle.DrawDashCustomLine(e.Graphics);
             }
             if (lew == aboba.lew3)
             {
-                DrawAll(e.Graphics, pen, points);
+                DrawAll(e.Graphics);
                 if (isDrawing)
                 {
-                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW);
+                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW, PointToClient(MousePosition));
                     tempRectangle.DrawDash(e.Graphics);
+                    Invalidate();
                 }
             }
             if (lew == aboba.lew4)
             {
-                DrawAll(e.Graphics, pen, points);
+                DrawAll(e.Graphics);
                 if (isDrawing)
                 {
-                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW);
+                    RectangleFigure tempRectangle = new RectangleFigure(startPoint, PointToClient(MousePosition), colorW, color_backW, thicknessW, PointToClient(MousePosition));
                     tempRectangle.DrawDashEllipse(e.Graphics);
                 }
             }

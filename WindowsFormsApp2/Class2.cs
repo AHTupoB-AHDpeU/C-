@@ -10,7 +10,7 @@ namespace WindowsFormsApp2
     {
         private Color backgroundColor;
 
-        public RectangleFigure(Point point1, Point point2, Color color, Color color_back, float thickness) : base(point1, point2, color, color_back, thickness)
+        public RectangleFigure(Point point1, Point point2, Color color, Color color_back, float thickness, Point point3) : base(point1, point2, color, color_back, thickness, point3)
         {
         }
 
@@ -39,6 +39,14 @@ namespace WindowsFormsApp2
             Pen dashedPen = new Pen(Color.Blue, 1);
             dashedPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
             g.DrawLine(dashedPen, point1, point2);
+            dashedPen.Dispose();
+        }
+        public override void DrawDashCustomLine(Graphics g)
+        {
+            Pen dashedPen = new Pen(Color.Blue, 1);
+            dashedPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+            Point[] points = { point1, point3, point2 };
+            g.DrawCurve(dashedPen, points);
             dashedPen.Dispose();
         }
 
@@ -75,23 +83,13 @@ namespace WindowsFormsApp2
         }
 
         // Произвольная линия
-        public override void DrawCustomLine(Graphics g, Pen pen, Point[] points)
+        public override void DrawCustomLine(Graphics g)
         {
-            pen.Color = color;
-            pen.Width = thickness;
-
-            if (points != null && points.Length >= 2)
+            if (point1 != null && point2 != null)
             {
-                if (points.Length == 2)
-                {
-                    g.DrawLine(pen, points[0], points[1]);
-                }
-                else
-                {
-                    g.DrawCurve(pen, points);
-                }
+                PointF[] points = { point1, point3, point2 };
+                g.DrawCurve(new Pen(color, thickness), points);
             }
         }
-
     }
 }
